@@ -1,5 +1,7 @@
 from django.shortcuts import render, HttpResponse
 from django.conf import settings
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 import requests
 import json
 
@@ -29,3 +31,10 @@ def slack_oauth_view(request):
         bot_access_token=data['bot']['bot_access_token']
     )
     return HttpResponse('Bot added to your Slack team!')
+
+
+@csrf_exempt
+@require_POST
+def take_ask_message(request):
+    print(request.POST)
+    return HttpResponse('Your asking was received.')

@@ -179,8 +179,11 @@ fabric.properties
 .idea/sonarlint
 
 # BD
-slack_bot/**/db.sqlite3
+slack_bot_project/db.sqlite3
 
 # pycharm
 slack_bot/.idea/
 .idea/
+
+# ngrok
+ngrok
