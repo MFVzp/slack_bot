@@ -1,15 +1,19 @@
-from django.shortcuts import render, HttpResponse
-from django.conf import settings
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-import requests
+# -*- coding: utf-8 -*-
+import os
 import json
 
-from .models import Team
+from django.shortcuts import render, HttpResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import PermissionDenied
+from slackclient import SlackClient
+import requests
+
+from .models import Team, AskMessage, AnswerMessage
 
 
 def index(request):
-    client_id = settings.SLACK_CLIENT_ID
+    client_id = os.environ.get("SLACK_CLIENT_ID")
     return render(request, 'index.html', {'client_id': client_id})
 
 
@@ -18,8 +22,8 @@ def slack_oauth_view(request):
 
     params = {
         'code': code,
-        'client_id': settings.SLACK_CLIENT_ID,
-        'client_secret': settings.SLACK_CLIENT_SECRET
+        'client_id': os.environ.get("SLACK_CLIENT_ID"),
+        'client_secret': os.environ.get("SLACK_CLIENT_SECRET"),
     }
     url = 'https://slack.com/api/oauth.access'
     json_response = requests.get(url, params)
@@ -36,5 +40,67 @@ def slack_oauth_view(request):
 @csrf_exempt
 @require_POST
 def take_ask_message(request):
-    print(request.POST)
-    return HttpResponse('Your asking was received.')
+    if request.POST.get('token') == os.environ.get("VERIFICATION_TOKEN"):
+        data = request.POST
+        slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+        ask_message = 'Пользователю @{0} нужно отлучиться "{1}"'.format(
+            data.get('user_name'),
+            data.get('text')
+        )
+        resp = slack_client.api_call(
+            'chat.postMessage',
+            channel='ask_bot_test_by_tia',
+            text=ask_message,
+            as_user=True
+        )
+        AskMessage.objects.create(
+            author_name=data.get('user_name'),
+            author_id=data.get('user_id'),
+            ts=resp['ts'],
+            channel=resp['channel'],
+            text=data.get('text'),
+            team=Team.objects.get(team_id=data.get('team_id'))
+        )
+        return HttpResponse('Your asking was received.')
+    else:
+        raise PermissionDenied
+
+
+@csrf_exempt
+@require_POST
+def take_event(request):
+    data = json.loads(request.body.decode())
+    if data.get('token') == os.environ.get("VERIFICATION_TOKEN"):
+        if data.get('challenge'):
+            return HttpResponse(data.get('challenge'))
+        elif data.get('event').get('thread_ts'):
+            try:
+                event = data.get('event')
+                ask_message = AskMessage.objects.get(ts=event.get('thread_ts'))
+                if not ask_message.is_answered:
+                    AnswerMessage.objects.create(
+                        author_id=event.get('user'),
+                        ts=event.get('ts'),
+                        text=event.get('text'),
+                        ask_message=ask_message
+                    )
+                    slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+                    resp = slack_client.api_call(
+                        'conversations.open',
+                        users=ask_message.author_id
+                    )
+                    if resp['ok']:
+                        answer = 'На Ваш запрос({0}) руководство ответило "{1}"'.format(
+                            ask_message.text,
+                            event.get('text')
+                        )
+                        slack_client.api_call(
+                            'chat.postMessage',
+                            channel=resp['channel']['id'],
+                            text=answer
+                        )
+                    ask_message.is_answered = True
+            except:
+                pass
+        return HttpResponse()
+    raise PermissionDenied

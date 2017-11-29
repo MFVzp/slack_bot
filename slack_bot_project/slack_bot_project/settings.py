@@ -26,7 +26,7 @@ SECRET_KEY = '^#y1lsuh849_tjtft-i3nn!%3wangk^lb_(=w*zbc6-l@o^qjy'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'ebcf9007.ngrok.io',
+    '1ed502df.ngrok.io',
     'localhost',
 ]
 
@@ -126,7 +126,3 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
-
-# Slack settings
-SLACK_CLIENT_ID = "235676379489.278009503760"
-SLACK_CLIENT_SECRET = "0acf365be0649cedfa9407bdae1022f9"
