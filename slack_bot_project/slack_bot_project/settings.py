@@ -26,7 +26,7 @@ SECRET_KEY = '^#y1lsuh849_tjtft-i3nn!%3wangk^lb_(=w*zbc6-l@o^qjy'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '1ed502df.ngrok.io',
+    '9dcd8269.ngrok.io',
     'localhost',
 ]
 

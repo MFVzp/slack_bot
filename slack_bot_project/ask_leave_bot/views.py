@@ -42,26 +42,33 @@ def slack_oauth_view(request):
 def take_ask_message(request):
     if request.POST.get('token') == os.environ.get("VERIFICATION_TOKEN"):
         data = request.POST
+        team = Team.objects.get(team_id=data.get('team_id'))
         slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
-        ask_message = '_Пользователю <@{0}> нужно отлучиться_ `"{1}"`'.format(
-            data.get('user_id'),
-            data.get('text')
+        all_channels = slack_client.api_call(
+            'groups.list'
         )
-        resp = slack_client.api_call(
-            'chat.postMessage',
-            channel='ask_bot_test_by_tia',
-            text=ask_message,
-            as_user=True,
-            link_names=True,
-        )
-        AskMessage.objects.create(
-            author_name=data.get('user_name'),
-            author_id=data.get('user_id'),
-            ts=resp['ts'],
-            channel=resp['channel'],
-            text=data.get('text'),
-            team=Team.objects.get(team_id=data.get('team_id'))
-        )
+        message_channels = [channel for channel in all_channels['groups'] if channel['name'] == team.message_chanel_name]
+        message_channel = message_channels and message_channels[0]
+        if message_channel:
+            ask_message = '_Пользователю <@{0}> нужно отлучиться_ `"{1}"`'.format(
+                data.get('user_id'),
+                data.get('text')
+            )
+            resp = slack_client.api_call(
+                'chat.postMessage',
+                channel='ask_bot_test_by_tia',
+                text=ask_message,
+                as_user=True,
+                link_names=True,
+            )
+            AskMessage.objects.create(
+                author_name=data.get('user_name'),
+                author_id=data.get('user_id'),
+                ts=resp['ts'],
+                channel=resp['channel'],
+                text=data.get('text'),
+                team=team
+            )
         return HttpResponse('Your asking was received.')
     else:
         raise PermissionDenied
@@ -91,14 +98,16 @@ def take_event(request):
                         users=ask_message.author_id
                     )
                     if resp['ok']:
-                        answer = 'На Ваш запрос({0}) руководство ответило "{1}"'.format(
+                        answer = '_На Ваш запрос(`{0}`) руководство ответило_ "`{1}`"'.format(
                             ask_message.text,
                             event.get('text')
                         )
                         slack_client.api_call(
                             'chat.postMessage',
                             channel=resp['channel']['id'],
-                            text=answer
+                            text=answer,
+                            as_user=True,
+                            link_names=True,
                         )
                     ask_message.is_answered = True
             except:
