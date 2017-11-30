@@ -43,15 +43,16 @@ def take_ask_message(request):
     if request.POST.get('token') == os.environ.get("VERIFICATION_TOKEN"):
         data = request.POST
         slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
-        ask_message = 'Пользователю @{0} нужно отлучиться "{1}"'.format(
-            data.get('user_name'),
+        ask_message = '_Пользователю <@{0}> нужно отлучиться_ `"{1}"`'.format(
+            data.get('user_id'),
             data.get('text')
         )
         resp = slack_client.api_call(
             'chat.postMessage',
             channel='ask_bot_test_by_tia',
             text=ask_message,
-            as_user=True
+            as_user=True,
+            link_names=True,
         )
         AskMessage.objects.create(
             author_name=data.get('user_name'),
