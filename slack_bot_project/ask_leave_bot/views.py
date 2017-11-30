@@ -48,7 +48,7 @@ def take_ask_message(request):
         )
         message_channels = [channel for channel in all_channels['groups'] if channel['name'] == team.message_chanel_name]
         message_channel = message_channels and message_channels[0]
-        if message_channel:
+        if message_channel or True:
             ask_message = '_Пользователю <@{0}> нужно отлучиться_ `"{1}"`'.format(
                 data.get('user_id'),
                 data.get('text')
@@ -84,31 +84,32 @@ def take_event(request):
             try:
                 event = data.get('event')
                 ask_message = AskMessage.objects.get(ts=event.get('thread_ts'))
-                if not ask_message.is_answered:
-                    AnswerMessage.objects.create(
-                        author_id=event.get('user'),
-                        ts=event.get('ts'),
-                        text=event.get('text'),
-                        ask_message=ask_message
+                AnswerMessage.objects.create(
+                    author_id=event.get('user'),
+                    ts=event.get('ts'),
+                    text=event.get('text'),
+                    ask_message=ask_message
+                )
+                slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+                resp = slack_client.api_call(
+                    'conversations.open',
+                    users=ask_message.author_id
+                )
+                if resp['ok']:
+                    print(event)
+                    answer = '_На Ваш запрос(`{0}`) <@{1}> ответил_ "`{2}`"'.format(
+                        ask_message.text,
+                        event.get('user'),
+                        event.get('text')
                     )
-                    slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
-                    resp = slack_client.api_call(
-                        'conversations.open',
-                        users=ask_message.author_id
+                    slack_client.api_call(
+                        'chat.postMessage',
+                        channel=resp['channel']['id'],
+                        text=answer,
+                        as_user=True,
+                        link_names=True,
                     )
-                    if resp['ok']:
-                        answer = '_На Ваш запрос(`{0}`) руководство ответило_ "`{1}`"'.format(
-                            ask_message.text,
-                            event.get('text')
-                        )
-                        slack_client.api_call(
-                            'chat.postMessage',
-                            channel=resp['channel']['id'],
-                            text=answer,
-                            as_user=True,
-                            link_names=True,
-                        )
-                    ask_message.is_answered = True
+                ask_message.is_answered = True
             except:
                 pass
         return HttpResponse()
