@@ -32,7 +32,6 @@ def slack_oauth_view(request):
         team_name=data['team_name'],
         team_id=data['team_id'],
         bot_user_id=data['bot']['bot_user_id'],
-        bot_access_token=data['bot']['bot_access_token']
     )
     return HttpResponse('Bot added to your Slack team!')
 
