@@ -15,11 +15,11 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-from ask_leave_bot.views import index
+from ask_leave_bot.views import index_view
 
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^$', index),
+    url(r'^$', index_view, name='index'),
     url(r'^slack/', include('ask_leave_bot.urls', namespace='slack')),
 ]

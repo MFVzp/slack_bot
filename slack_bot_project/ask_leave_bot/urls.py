@@ -1,9 +1,10 @@
 from django.conf.urls import url
-from .views import slack_oauth_view, take_ask_message, take_event
+from .views import slack_oauth_view, take_ask_message_view, take_event_view, logout_view
 
 
 urlpatterns = [
-    url(r'^oauth/$', slack_oauth_view),
-    url(r'^message/$', take_ask_message),
-    url(r'^events/$', take_event),
+    url(r'oauth/register/$', slack_oauth_view),
+    url(r'message/$', take_ask_message_view),
+    url(r'events/$', take_event_view),
+    url(r'logout/$', logout_view, name='logout'),
 ]

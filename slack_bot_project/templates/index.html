@@ -1,13 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Ask leave bot</title>
-    </head>
-    <body>
-        <h1>Bot ask to leave</h1>
-        <a href="https://slack.com/oauth/authorize?scope=bot&client_id={{ client_id }}">
-            Add To Slack
-        </a>
-    </body>
-</html>
+{% extends 'base.html'%}
+{% block content %}
+    <h2>Описание</h2>
+        <p>Slack bot который оповещает руководство компании о том,
+            что кто-то из сотрудников хочет перенести свой обед
+            или отпросится в университет или к стоматологу.</p>
+    <br>
+    <h2>Пример работы бота</h2>
+    <p>Команда в slack: <i>/ask_leave нужно уйти в университет 27.11.2017 в 15:00, вернусь к 16:00</i></p>
+    <p>После отправки данного сообщения, в канал куда был установлен бот прийдет сообщение следующего вида:
+        <i>Пользователю <span style="color: blue;">@bob_marley</span> нужно
+         отлучиться “<span style="color: red;">нужно уйти в университет 27.11.2017 в 15:00, вернусь к 16:00</span>”</i></p>
+    <p>Для того чтобы получить ответ на запрос, руководство должно прокомментировать (создать Thread) данное сообщение.</p>
+    <p>Бот отправит пользователю который создал запрос комментарий от руководства следующего вида:
+    <i>На Ваш запрос(<span style="color: red;">нужно уйти в университет 27.11.2017 в 15:00, вернусь к 16:00</span>)
+        <span style="color: blue;">@django_reinhardt</span> ответил "<span style="color: red;">Хорошо</span>"</i></p>
+{% endblock %}

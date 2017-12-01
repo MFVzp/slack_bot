@@ -26,7 +26,7 @@ SECRET_KEY = '^#y1lsuh849_tjtft-i3nn!%3wangk^lb_(=w*zbc6-l@o^qjy'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '9dcd8269.ngrok.io',
+    '6190162f.ngrok.io',
     'localhost',
 ]
 
@@ -126,3 +126,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# Slack
+try:
+    from .keys import SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, VERIFICATION_TOKEN, SLACK_BOT_TOKEN
+except ImportError:
+    SLACK_CLIENT_ID = os.environ.get("SLACK_CLIENT_ID")
+    SLACK_CLIENT_SECRET = os.environ.get("SLACK_CLIENT_SECRET")
+    VERIFICATION_TOKEN = os.environ.get("VERIFICATION_TOKEN")
+    SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
