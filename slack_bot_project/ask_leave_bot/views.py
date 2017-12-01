@@ -37,7 +37,6 @@ def slack_oauth_view(request):
         team_id=data['team_id']
     )
     password = data['user_id']*2
-    print(request.user.is_authenticated)
     if not request.user.is_authenticated:
         slack_client = SlackClient(data['access_token'])
         profile = slack_client.api_call('users.profile.get')['profile']
@@ -64,6 +63,7 @@ def slack_oauth_view(request):
         user = request.user
     if team_created:
         team.admin = user
+        team.save()
     return redirect('index')
 
 
