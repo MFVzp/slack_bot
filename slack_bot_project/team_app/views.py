@@ -1,9 +1,10 @@
 from django.views import generic
 from django.shortcuts import get_list_or_404
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 
 from .models import Team
-from .forms import ChannelForm
+from .forms import ChannelForm, AddModeratorForm
 
 
 class TeamListView(generic.ListView):
@@ -28,11 +29,21 @@ class TeamDetailView(generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super(TeamDetailView, self).get_context_data(**kwargs)
         message_chanel_name = self.get_object().message_chanel_name
-        context['form'] = ChannelForm(
+        context['channel_form'] = ChannelForm(
             initial={
                 'message_chanel_name': message_chanel_name
             }
         )
+        team = self.get_object()
+        not_staff_users = User.objects.exclude(
+            id=team.admin.id
+        ).exclude(
+            id__in=team.moderators.all().values_list('id', flat=True)
+        )
+        if not_staff_users:
+            context['moderators_add_form'] = AddModeratorForm(
+                queryset=not_staff_users
+            )
         return context
 
 
@@ -45,6 +56,21 @@ class ChangeChannelView(generic.FormView):
         team.message_chanel_name = message_chanel_name
         team.save()
         return super(ChangeChannelView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('slack:teams:team_details', kwargs={'pk': self.kwargs.get('pk')})
+
+
+class AddModeratorView(generic.FormView):
+    form_class = AddModeratorForm
+
+    def form_valid(self, form):
+        moderators_id = form.cleaned_data.get('moderators')
+        team = Team.objects.get(id=self.kwargs.get('pk'))
+        for moderator_id in moderators_id:
+            user = User.objects.get(id=moderator_id)
+            team.moderators.add(user)
+        return super(AddModeratorView, self).form_valid(form)
 
     def get_success_url(self):
         return reverse('slack:teams:team_details', kwargs={'pk': self.kwargs.get('pk')})

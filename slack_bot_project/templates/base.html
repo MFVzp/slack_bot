@@ -12,6 +12,9 @@
             <ul class="navbar-nav collapse navbar-collapse">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'index' %}">Главная</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'slack:teams:team_list' %}">Группы</a>
                     </li>
                 {% endif %}
