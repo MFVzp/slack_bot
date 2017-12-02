@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from slackclient import SlackClient
 import requests
 
-from .models import Team, AskMessage, AnswerMessage
+from team_app.models import Team, AskMessage, AnswerMessage
 from slack_bot_project import settings
 
 

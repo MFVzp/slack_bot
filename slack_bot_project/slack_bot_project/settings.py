@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'ask_leave_bot',
+    'team_app',
 ]
 
 MIDDLEWARE = [
@@ -62,6 +63,7 @@ TEMPLATES = [
         'DIRS': [
             os.path.join(BASE_DIR, 'templates'),
             os.path.join(BASE_DIR, 'templates/ask_leave_bot'),
+            os.path.join(BASE_DIR, 'templates/team_app'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
