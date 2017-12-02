@@ -8,6 +8,7 @@ class Team(models.Model):
     message_chanel_id = models.CharField(max_length=100, null=True)
     message_chanel_name = models.CharField(max_length=100, null=True)
     users = models.ManyToManyField(User, related_name='member_of_teams')
+    moderators = models.ManyToManyField(User, related_name='moderator_of_teams')
     admin = models.ForeignKey(User, related_name='admin_of_teams', null=True)
 
     def __str__(self):

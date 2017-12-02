@@ -64,6 +64,7 @@ def slack_oauth_view(request):
     if team_created:
         team.admin = user
         team.save()
+        team.moderators.add(user)
     return redirect('index')
 
 
