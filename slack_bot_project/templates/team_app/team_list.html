@@ -1,6 +1,6 @@
 {% extends 'base.html'%}
 {% block content %}
     {% for team in teams %}
-
+        <h2><a href="{% url 'slack:teams:team_details' pk=team.id %}">{{ team.team_name }}</a></h2>
     {% endfor %}
 {% endblock %}

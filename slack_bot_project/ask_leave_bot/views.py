@@ -89,7 +89,7 @@ def take_ask_message_view(request):
             )
             resp = slack_client.api_call(
                 'chat.postMessage',
-                channel='ask_bot_test_by_tia',
+                channel=team.message_chanel_name,
                 text=ask_message,
                 as_user=True,
                 link_names=True,

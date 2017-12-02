@@ -1,0 +1,30 @@
+{% extends 'base.html'%}
+{% block content %}
+    <h1>{{ team.team_name }}</h1>
+    {% if user == team.admin %}
+        {% if team.message_chanel_name %}
+            <p>Канал в который установлен бот:
+                <a data-toggle="collapse" href="#collapseForm" aria-expanded="false" aria-controls="collapseForm">
+                    <b>{{ team.message_chanel_name }}</b>
+                </a>
+            </p>
+        {% else %}
+            <p style="color: red;">Для функционирования бота необходимо
+                <a data-toggle="collapse" href="#collapseForm" aria-expanded="false" aria-controls="collapseForm">
+                    выбрать канал
+                </a>
+                в который будут приходить сообщения</p>
+        {% endif %}
+            <div class="collapse" id="collapseForm">
+                <div class="card card-body">
+                    <form method="post" action="{% url 'slack:teams:change_channel' pk=team.id %}">{% csrf_token %}
+                        {{ form.as_p }}
+                        <input type="submit" class="btn btn-success" value="Выбрать канал">
+                    </form>
+                </div>
+            </div>
+        <p>{{ team.users.all }}</p>
+        <p>{{ team.moderators }}</p>
+        <p>{{ team.ask_messages }}</p>
+    {% endif %}
+{% endblock %}

@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 class Team(models.Model):
     team_name = models.CharField(max_length=200)
     team_id = models.CharField(max_length=20)
-    message_chanel_id = models.CharField(max_length=100, null=True)
     message_chanel_name = models.CharField(max_length=100, null=True)
     users = models.ManyToManyField(User, related_name='member_of_teams')
     moderators = models.ManyToManyField(User, related_name='moderator_of_teams')
