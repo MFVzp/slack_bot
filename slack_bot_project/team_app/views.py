@@ -1,10 +1,10 @@
 from django.views import generic
 from django.urls import reverse_lazy
-from django.shortcuts import get_list_or_404
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 
 from .models import Team
 from .forms import *
@@ -17,7 +17,11 @@ class TeamListView(LoginRequiredMixin, generic.ListView):
     context_object_name = 'teams'
 
     def get_queryset(self):
-        queryset = get_list_or_404(Team, users=self.request.user)
+        queryset = Team.objects.filter(
+            Q(users=self.request.user) |
+            Q(moderators=self.request.user) |
+            Q(admin=self.request.user)
+        )
         return queryset
 
 
@@ -40,19 +44,13 @@ class TeamDetailView(LoginRequiredMixin, generic.DetailView):
                 'message_chanel_name': message_chanel_name
             }
         )
-        not_staff_users = team.users.exclude(
-            id=team.admin.id
-        ).exclude(
-            id__in=team.moderators.all().values_list('id', flat=True)
-        )
-        if not_staff_users:
+        if team.users.all().exists():
             context['moderators_add_form'] = AddModeratorForm(
-                queryset=not_staff_users
+                team_id=team.id
             )
-        moderators = team.moderators.exclude(id=team.admin.id)
-        if moderators:
+        if team.moderators.all().exists():
             context['change_admin_form'] = ChangeAdminForm(
-                queryset=moderators
+                team_id=team.id
             )
         return context
 
@@ -80,8 +78,12 @@ class ChangeAdminView(LoginRequiredMixin, generic.FormView):
         admin_id = form.cleaned_data.get('admin')
         team = Team.objects.get(id=self.kwargs.get('pk'))
         new_admin = User.objects.get(id=admin_id)
-        team.admin = new_admin
-        team.save()
+        team.moderators.add(self.request.user)
+        try:
+            team.admin = new_admin
+            team.save()
+        except:
+            team.moderators.remove(self.request.user)
         return super(ChangeAdminView, self).form_valid(form)
 
     def get_success_url(self):
@@ -97,7 +99,11 @@ class AddModeratorView(LoginRequiredMixin, generic.FormView):
         team = Team.objects.get(id=self.kwargs.get('pk'))
         for moderator_id in moderators_id:
             user = User.objects.get(id=moderator_id)
-            team.moderators.add(user)
+            team.users.remove(user)
+            try:
+                team.moderators.add(user)
+            except:
+                team.users.add(user)
         return super(AddModeratorView, self).form_valid(form)
 
     def form_invalid(self, form):
@@ -116,4 +122,8 @@ class RemoveModeratorView(LoginRequiredMixin, generic.View):
             team = Team.objects.get(id=kwargs.get('pk'))
             user = User.objects.get(id=moderator_id)
             team.moderators.remove(user)
+            try:
+                team.users.add(user)
+            except:
+                team.moderators.add(user)
         return HttpResponseRedirect(reverse('slack:teams:team_details', kwargs={'pk': kwargs.get('pk')}))

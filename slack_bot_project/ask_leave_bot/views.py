@@ -54,7 +54,8 @@ def slack_oauth_view(request):
             )
             user.set_password(password)
             user.save()
-            team.users.add(user)
+            if not team_created:
+                team.users.add(user)
         login(
             request=request,
             user=user
@@ -64,7 +65,6 @@ def slack_oauth_view(request):
     if team_created:
         team.admin = user
         team.save()
-        team.moderators.add(user)
     return redirect('index')
 
 

@@ -83,65 +83,76 @@
         </div>
 
         <!--Users info-->
-
-        <h3>
-            <a data-toggle="collapse" href="#collapseAllUsers" aria-expanded="false" aria-controls="collapseAllUsers">
-                Пользователи и модераторы
-            </a>
-        </h3>
-        <div class="collapse" id="collapseAllUsers">
-            <div class="card card-body">
-                <h4>
-                    <a data-toggle="collapse" href="#collapseUsers" aria-expanded="false" aria-controls="collapseUsers">
-                        Пользователи
-                    </a>
-                </h4>
-                <div class="collapse" id="collapseUsers">
-                    <div class="card card-body">
-                        {% for my_user in team.users.all %}
-                            <p>{{ my_user.get_full_name }}</p>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <h4>
-                    <a data-toggle="collapse" href="#collapseModerators" aria-expanded="false" aria-controls="collapseModerators">
-                        Модераторы
-                    </a>
-                    {% if moderators_add_form %}
-                        <a data-toggle="collapse" href="#collapseAddModerators" aria-expanded="false" aria-controls="collapseAddModerators" style="font-size: 12px">
-                            (добавить модератора)
-                        </a>
-                    {% endif %}
-                </h4>
-                {% if moderators_add_form %}
-                    <div class="collapse" id="collapseAddModerators">
-                        <div class="card card-body">
-                            <form method="post" action="{% url 'slack:teams:add_moderator' pk=team.id %}">{% csrf_token %}
-                                {{ moderators_add_form.as_p }}
-                                <input type="submit" class="btn btn-success" value="Добавить">
-                            </form>
-                        </div>
-                    </div>
-                {% endif %}
-                <div class="collapse" id="collapseModerators">
-                    <div class="card card-body">
-                        {% for moderator in team.moderators.all %}
-                            <div>
-                                <div style="display: inline-block;">{{ moderator.get_full_name }}</div>
-                                {% if moderator != team.admin %}
-                                    <form method="post" action="{% url 'slack:teams:remove_moderator' pk=team.id %}" style="display: inline-block;float: right;">
-                                        {% csrf_token %}
-                                        <input name="moderator_id" type="text" value="{{ moderator.id }}" hidden>
-                                        <input type="submit" class="btn btn-danger" value="удалить из модераторов" style="font-size: 10px;">
-                                    </form>
-                                {% endif %}
+        {% if team.users.all or team.moderators.all %}
+            <h3>
+                <a data-toggle="collapse" href="#collapseAllUsers" aria-expanded="false" aria-controls="collapseAllUsers">
+                    Пользователи и модераторы
+                </a>
+            </h3>
+            <div class="collapse" id="collapseAllUsers">
+                <div class="card card-body">
+                    {% if team.users.all %}
+                        <h4>
+                            <a data-toggle="collapse" href="#collapseUsers" aria-expanded="false" aria-controls="collapseUsers">
+                                Пользователи
+                            </a>
+                        </h4>
+                        <div class="collapse" id="collapseUsers">
+                            <div class="card card-body">
+                                {% for my_user in team.users.all %}
+                                    <p>{{ my_user.get_full_name }}</p>
+                                {% endfor %}
                             </div>
-                        {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <h4>
+                        <a data-toggle="collapse" href="#collapseModerators" aria-expanded="false" aria-controls="collapseModerators">
+                            Модераторы
+                        </a>
+                        {% if moderators_add_form %}
+                            <a data-toggle="collapse" href="#collapseAddModerators" aria-expanded="false" aria-controls="collapseAddModerators" style="font-size: 12px">
+                                (добавить модераторов)
+                            </a>
+                        {% endif %}
+                    </h4>
+                    {% if moderators_add_form %}
+                        <div class="collapse" id="collapseAddModerators">
+                            <div class="card card-body">
+                                <form method="post" action="{% url 'slack:teams:add_moderator' pk=team.id %}">{% csrf_token %}
+                                    {{ moderators_add_form.as_p }}
+                                    <input type="submit" class="btn btn-success" value="Добавить">
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="collapse" id="collapseModerators">
+                        <div class="card card-body">
+                            {% if team.moderators.all %}
+                                {% for moderator in team.moderators.all %}
+                                    <div>
+                                        <div style="display: inline-block;">{{ moderator.get_full_name }}</div>
+                                        <form method="post" action="{% url 'slack:teams:remove_moderator' pk=team.id %}" style="display: inline-block;float: right;">
+                                            {% csrf_token %}
+                                            <input name="moderator_id" type="text" value="{{ moderator.id }}" hidden>
+                                            <input type="submit" class="btn btn-danger" value="удалить из модераторов" style="font-size: 10px;">
+                                        </form>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div>
+                                    На данный момент нет модераторов. Вы можете
+                                    <a data-toggle="collapse" href="#collapseAddModerators" aria-expanded="false" aria-controls="collapseAddModerators">
+                                        добавить модераторов
+                                    </a>
+                                    из списка пользователей.
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
     {% endif %}
 
     <!--Messages info-->
@@ -152,17 +163,23 @@
     </h3>
     <div class="collapse" id="collapseMessages">
         <div class="carard-body">
-            {% for ask_message in team.ask_messages.all %}
-                {% if user in team.moderators.all or user == ask_message.author_id %}
-                <div class="card" style="padding: 10px;">
-                    <div style="font-size: 12px; margin-bottom: 5px;">
-                        <b style="font-size: 20px;">{{ ask_message.author_name }}</b>
-                        <span style="float: right;">{{ ask_message.create_date|date:"d.n.Y H:i" }}</span>
+            {% if team.ask_messages.all %}
+                {% for ask_message in team.ask_messages.all %}
+                    {% if user in team.moderators.all or user == team.admin or user == ask_message.author_id %}
+                    <div class="card" style="padding: 10px;">
+                        <div style="font-size: 12px; margin-bottom: 5px;">
+                            <b style="font-size: 20px;">{{ ask_message.author_name }}</b>
+                            <span style="float: right;">{{ ask_message.create_date|date:"d.n.Y H:i" }}</span>
+                        </div>
+                        <h5 style="margin-left: 20px;">{{ ask_message.text }}</h5>
                     </div>
-                    <h5 style="margin-left: 20px;">{{ ask_message.text }}</h5>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div>
+                    На данный момент никто не оставлял сообщений.
                 </div>
-                {% endif %}
-            {% endfor %}
+            {% endif %}
         </div>
     </div>
 {% endblock %}

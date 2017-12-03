@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django import forms
+from .models import Team
 
 
 class ChannelForm(forms.Form):
@@ -9,14 +10,14 @@ class ChannelForm(forms.Form):
 class AddModeratorForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
-        self.queryset = kwargs.pop('queryset', list())
+        self.team_id = kwargs.pop('team_id', list())
         super(AddModeratorForm, self).__init__(*args, **kwargs)
         choices = list()
         if kwargs.get('data'):
-            for choice in kwargs.get('data').get('moderators'):
+            for choice in dict(kwargs.get('data')).get('moderators'):
                 choices.append((choice, ''))
         else:
-            for user in self.queryset:
+            for user in Team.objects.get(id=self.team_id).users.all():
                 choices.append(
                     (user.id, user.get_full_name)
                 )
@@ -29,14 +30,14 @@ class AddModeratorForm(forms.Form):
 class ChangeAdminForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
-        self.queryset = kwargs.pop('queryset', list())
+        self.team_id = kwargs.pop('team_id', list())
         super(ChangeAdminForm, self).__init__(*args, **kwargs)
         choices = list()
         if kwargs.get('data'):
-            for choice in kwargs.get('data').get('admin'):
+            for choice in dict(kwargs.get('data')).get('admin'):
                 choices.append((choice, ''))
         else:
-            for user in self.queryset:
+            for user in Team.objects.get(id=self.team_id).moderators.all():
                 choices.append(
                     (user.id, user.get_full_name)
                 )
