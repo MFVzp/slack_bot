@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.contrib.auth.models import User
 
 from .models import *
@@ -37,5 +37,11 @@ class TeamDetailViewTest(TestCase):
             team.admin = self.users[i]
             team.save()
             self.teams.append(team)
-
-    def 
+        self.clients = list()
+        for i in range(3):
+            client = Client()
+            client.login(
+                username=self.users[i],
+                password='qazwsx'
+            )
+            self.clients.append(client)
