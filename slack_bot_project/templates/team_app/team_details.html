@@ -5,6 +5,43 @@
         Ваша роль:
         {% if user == team.admin %}
             администратор
+            {% if change_admin_form %}
+                (
+                <a data-toggle="collapse" href="#collapseChangeAdmin" aria-expanded="false" aria-controls="collapseChangeAdmin" style="font-size: 12px">
+                    назначить нового администратора
+                </a>)
+                <div class="collapse" id="collapseChangeAdmin">
+                    <div class="card card-body">
+                        <form method="post" action="{% url 'slack:teams:change_admin' pk=team.id %}">{% csrf_token %}
+                            {{ change_admin_form.as_p }}
+                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#changeAdminModal">
+                                Назначить
+                            </button>
+                            <div class="modal fade" id="changeAdminModal" tabindex="-1" role="dialog" aria-labelledby="changeAdminModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="changeAdminModalLabel">Attention!</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div>При назначении нового администратора вам будет присвоена роль "Модератор".</div>
+                                            <div>Вы уверены что хотите назначить нового администратора?</div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-success" data-dismiss="modal">Отмена</button>
+                                            <button type="submit" class="btn btn-danger">Назначить</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            {% endif %}
         {% elif user in team.moderators.all %}
             модератор
         {% else %}
@@ -80,7 +117,7 @@
                 {% if moderators_add_form %}
                     <div class="collapse" id="collapseAddModerators">
                         <div class="card card-body">
-                            <form method="post" action="{% url 'slack:teams:change_channel' pk=team.id %}">{% csrf_token %}
+                            <form method="post" action="{% url 'slack:teams:add_moderator' pk=team.id %}">{% csrf_token %}
                                 {{ moderators_add_form.as_p }}
                                 <input type="submit" class="btn btn-success" value="Добавить">
                             </form>
@@ -90,7 +127,16 @@
                 <div class="collapse" id="collapseModerators">
                     <div class="card card-body">
                         {% for moderator in team.moderators.all %}
-                            <p>{{ moderator.get_full_name }}</p>
+                            <div>
+                                <div style="display: inline-block;">{{ moderator.get_full_name }}</div>
+                                {% if moderator != team.admin %}
+                                    <form method="post" action="{% url 'slack:teams:remove_moderator' pk=team.id %}" style="display: inline-block;float: right;">
+                                        {% csrf_token %}
+                                        <input name="moderator_id" type="text" value="{{ moderator.id }}" hidden>
+                                        <input type="submit" class="btn btn-danger" value="удалить из модераторов" style="font-size: 10px;">
+                                    </form>
+                                {% endif %}
+                            </div>
                         {% endfor %}
                     </div>
                 </div>
