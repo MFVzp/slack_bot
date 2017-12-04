@@ -39,16 +39,17 @@ class TeamDetailView(LoginRequiredMixin, generic.DetailView):
         context = super(TeamDetailView, self).get_context_data(**kwargs)
         team = self.get_object()
         message_chanel_name = team.message_chanel_name
-        context['channel_form'] = ChannelForm(
-            initial={
-                'message_chanel_name': message_chanel_name
-            }
-        )
-        if team.users.all().exists():
+        if self.request.user == team.admin:
+            context['channel_form'] = ChannelForm(
+                initial={
+                    'message_chanel_name': message_chanel_name
+                }
+            )
+        if team.users.all().exists() and self.request.user == team.admin:
             context['moderators_add_form'] = AddModeratorForm(
                 team_id=team.id
             )
-        if team.moderators.all().exists():
+        if team.moderators.all().exists() and self.request.user == team.admin:
             context['change_admin_form'] = ChangeAdminForm(
                 team_id=team.id
             )
