@@ -75,14 +75,7 @@ def take_ask_message_view(request):
         data = request.POST
         team = Team.objects.get(team_id=data.get('team_id'))
         slack_client = SlackClient(settings.SLACK_BOT_TOKEN)
-        all_channels = slack_client.api_call(
-            'groups.list'
-        )
-        message_channels = [
-            channel for channel in all_channels['groups'] if channel['name'] == team.message_chanel_name
-        ]
-        message_channel = message_channels and message_channels[0]
-        if message_channel or True:
+        if team.message_chanel_name:
             ask_message = '_Пользователю <@{0}> нужно отлучиться_ `"{1}"`'.format(
                 data.get('user_id'),
                 data.get('text')
@@ -104,7 +97,7 @@ def take_ask_message_view(request):
             )
         return HttpResponse('Your asking was received.')
     else:
-        raise PermissionDenied
+        return HttpResponse('Your asking was received.', status_code='405', reason_phrase='Method Not Allowed')
 
 
 @csrf_exempt
