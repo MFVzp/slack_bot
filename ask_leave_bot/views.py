@@ -75,7 +75,7 @@ def take_ask_message_view(request):
         data = request.POST
         team = Team.objects.get(team_id=data.get('team_id'))
         if team.message_chanel_name:
-			slack_client = SlackClient(settings.SLACK_BOT_TOKEN)
+            slack_client = SlackClient(settings.SLACK_BOT_TOKEN)
             ask_message = '_Пользователю <@{0}> нужно отлучиться_ `"{1}"`'.format(
                 data.get('user_id'),
                 data.get('text')
@@ -95,9 +95,9 @@ def take_ask_message_view(request):
                 text=data.get('text'),
                 team=team
             )
-			return HttpResponse('Your asking was received.')
-		else:
-			return HttpResponse('Message channel have not set', status_code='405', reason_phrase='Method Not Allowed')
+            return HttpResponse('Your asking was received.')
+        else:
+            return HttpResponse('Message channel have not set', status_code='405', reason_phrase='Method Not Allowed')
     else:
         return HttpResponse('', status_code='403', reason_phrase='Forbidden')
 
