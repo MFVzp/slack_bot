@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.db import transaction
 
 from .models import Team
-from .forms import *
+from team_app import forms as team_form
 
 
 class TeamListView(LoginRequiredMixin, generic.ListView):
@@ -41,17 +41,17 @@ class TeamDetailView(LoginRequiredMixin, generic.DetailView):
         team = self.get_object()
         message_chanel_name = team.message_chanel_name
         if self.request.user == team.admin:
-            context['channel_form'] = ChannelForm(
+            context['channel_form'] = team_form.ChannelForm(
                 initial={
                     'message_chanel_name': message_chanel_name
                 }
             )
         if team.users.all().exists() and self.request.user == team.admin:
-            context['moderators_add_form'] = AddModeratorForm(
+            context['moderators_add_form'] = team_form.AddModeratorForm(
                 team_id=team.id
             )
         if team.moderators.all().exists() and self.request.user == team.admin:
-            context['change_admin_form'] = ChangeAdminForm(
+            context['change_admin_form'] = team_form.ChangeAdminForm(
                 team_id=team.id
             )
         return context
@@ -59,7 +59,7 @@ class TeamDetailView(LoginRequiredMixin, generic.DetailView):
 
 class ChangeChannelView(LoginRequiredMixin, generic.FormView):
     login_url = reverse_lazy('index')
-    form_class = ChannelForm
+    form_class = team_form.ChannelForm
 
     def form_valid(self, form):
         message_chanel_name = form.cleaned_data.get('message_chanel_name')
@@ -72,7 +72,7 @@ class ChangeChannelView(LoginRequiredMixin, generic.FormView):
 
 class ChangeAdminView(LoginRequiredMixin, generic.FormView):
     login_url = reverse_lazy('index')
-    form_class = ChangeAdminForm
+    form_class = team_form.ChangeAdminForm
 
     def form_valid(self, form):
         admin_id = form.cleaned_data.get('admin')
@@ -90,7 +90,7 @@ class ChangeAdminView(LoginRequiredMixin, generic.FormView):
 
 class AddModeratorView(LoginRequiredMixin, generic.FormView):
     login_url = reverse_lazy('index')
-    form_class = AddModeratorForm
+    form_class = team_form.AddModeratorForm
 
     def form_valid(self, form):
         moderators_id = form.cleaned_data.get('moderators')
