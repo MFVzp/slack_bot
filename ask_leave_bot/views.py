@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 
-from django.shortcuts import render, HttpResponse, redirect
+from django.shortcuts import render, HttpResponse, redirect, Http404
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import PermissionDenied
@@ -32,40 +32,43 @@ def slack_oauth_view(request):
     json_response = requests.get(url, params)
     data = json.loads(json_response.text)
 
-    team, team_created = Team.objects.get_or_create(
-        team_name=data['team_name'],
-        team_id=data['team_id']
-    )
-    password = data['user_id']*2
-    if not request.user.is_authenticated:
-        slack_client = SlackClient(data['access_token'])
-        profile = slack_client.api_call('users.profile.get')['profile']
-        user = authenticate(
-            request=request,
-            username=data['user_id'],
-            password=password
+    if data.get('access_token') and not data.get('error'):
+        team, team_created = Team.objects.get_or_create(
+            team_name=data['team_name'],
+            team_id=data['team_id']
         )
-        if user is None:
-            user = User.objects.create_user(
+        password = data['user_id']*2
+        if not request.user.is_authenticated:
+            slack_client = SlackClient(data['access_token'])
+            profile = slack_client.api_call('users.profile.get')['profile']
+            user = authenticate(
+                request=request,
                 username=data['user_id'],
-                first_name=profile['first_name'],
-                last_name=profile['last_name'],
-                email=profile['email']
+                password=password
             )
-            user.set_password(password)
-            user.save()
-            if not team_created:
-                team.users.add(user)
-        login(
-            request=request,
-            user=user
-        )
+            if user is None:
+                user = User.objects.create_user(
+                    username=data['user_id'],
+                    first_name=profile['first_name'],
+                    last_name=profile['last_name'],
+                    email=profile['email']
+                )
+                user.set_password(password)
+                user.save()
+                if not team_created:
+                    team.users.add(user)
+            login(
+                request=request,
+                user=user
+            )
+        else:
+            user = request.user
+        if team_created:
+            team.admin = user
+            team.save()
+        return redirect('index')
     else:
-        user = request.user
-    if team_created:
-        team.admin = user
-        team.save()
-    return redirect('index')
+        return Http404
 
 
 @csrf_exempt
