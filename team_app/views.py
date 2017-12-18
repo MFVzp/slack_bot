@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
+from django.db import transaction
 
 from .models import Team
 from .forms import *
@@ -77,12 +78,10 @@ class ChangeAdminView(LoginRequiredMixin, generic.FormView):
         admin_id = form.cleaned_data.get('admin')
         team = Team.objects.get(id=self.kwargs.get('pk'))
         new_admin = User.objects.get(id=admin_id)
-        team.moderators.add(self.request.user)
-        try:
+        with transaction.atomic():
+            team.moderators.add(self.request.user)
             team.admin = new_admin
             team.save()
-        except:
-            team.moderators.remove(self.request.user)
         return super(ChangeAdminView, self).form_valid(form)
 
     def get_success_url(self):
@@ -98,11 +97,9 @@ class AddModeratorView(LoginRequiredMixin, generic.FormView):
         team = Team.objects.get(id=self.kwargs.get('pk'))
         for moderator_id in moderators_id:
             user = User.objects.get(id=moderator_id)
-            team.users.remove(user)
-            try:
+            with transaction.atomic():
+                team.users.remove(user)
                 team.moderators.add(user)
-            except:
-                team.users.add(user)
         return super(AddModeratorView, self).form_valid(form)
 
     def form_invalid(self, form):
@@ -120,9 +117,7 @@ class RemoveModeratorView(LoginRequiredMixin, generic.View):
         if moderator_id:
             team = Team.objects.get(id=kwargs.get('pk'))
             user = User.objects.get(id=moderator_id)
-            team.moderators.remove(user)
-            try:
+            with transaction.atomic():
+                team.moderators.remove(user)
                 team.users.add(user)
-            except:
-                team.moderators.add(user)
         return HttpResponseRedirect(reverse('slack:teams:team_details', kwargs={'pk': kwargs.get('pk')}))
