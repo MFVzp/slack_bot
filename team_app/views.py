@@ -62,9 +62,7 @@ class ChangeChannelView(LoginRequiredMixin, generic.FormView):
 
     def form_valid(self, form):
         message_chanel_name = form.cleaned_data.get('message_chanel_name')
-        team = Team.objects.get(id=self.kwargs.get('pk'))
-        team.message_chanel_name = message_chanel_name
-        team.save()
+        Team.objects.filter(id=self.kwargs.get('pk')).update(message_chanel_name=message_chanel_name)
         return super(ChangeChannelView, self).form_valid(form)
 
     def get_success_url(self):
