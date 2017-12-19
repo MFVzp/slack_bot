@@ -8,4 +8,5 @@ urlpatterns = [
     url(r'events/$', take_event_view),
     url(r'logout/$', logout_view, name='logout'),
     url(r'teams/', include('team_app.urls', namespace='teams')),
+    url(r'api/', include('team_app_api.urls', namespace='teams_api')),
 ]

@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
     'ask_leave_bot',
     'team_app',
+    'team_app_api',
 ]
 
 MIDDLEWARE = [
@@ -162,7 +163,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
-#STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 # Slack
 try:
@@ -172,3 +173,11 @@ except ImportError:
     SLACK_CLIENT_SECRET = os.environ.get("SLACK_CLIENT_SECRET")
     VERIFICATION_TOKEN = os.environ.get("VERIFICATION_TOKEN")
     SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
+
+
+# REST settings
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
