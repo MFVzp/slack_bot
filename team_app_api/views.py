@@ -9,6 +9,7 @@ class TeamListView(generics.ListAPIView):
     serializer_class = TeamSerializer
 
     def get_queryset(self):
+        print('get_queryset')
         queryset = Team.objects.filter(
             Q(users=self.request.user) |
             Q(moderators=self.request.user) |
