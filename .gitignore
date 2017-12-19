@@ -190,3 +190,6 @@ ngrok
 
 # keys
 keys.py
+
+# debug_toolbar
+dump.rdb

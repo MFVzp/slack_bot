@@ -87,6 +87,23 @@ TEMPLATES = [
 WSGI_APPLICATION = 'slack_bot_project.wsgi.application'
 
 
+# Caches
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+
+# Session backend
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
+
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
@@ -140,15 +157,11 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static_files')
 
-# STATICFILES_DIRS = (
-#     os.path.join(BASE_DIR, 'static'),
-# )
-
 STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 # Slack
 try:
-    from .keys import SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, VERIFICATION_TOKEN, SLACK_BOT_TOKEN
+    from keys import SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, VERIFICATION_TOKEN, SLACK_BOT_TOKEN
 except ImportError:
     SLACK_CLIENT_ID = os.environ.get("SLACK_CLIENT_ID")
     SLACK_CLIENT_SECRET = os.environ.get("SLACK_CLIENT_SECRET")
