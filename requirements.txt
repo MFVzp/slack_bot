@@ -3,10 +3,12 @@ chardet==3.0.4
 dj-database-url==0.4.2
 Django==1.11.7
 django-debug-toolbar==1.9.1
+django-filter==1.1.0
 django-redis==4.8.0
+djangorestframework==3.7.3
 gunicorn==19.7.1
 idna==2.6
-pkg-resources==0.0.0
+Markdown==2.6.10
 psycopg2==2.7.3.2
 pytz==2017.3
 redis==2.10.6
