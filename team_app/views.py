@@ -33,12 +33,16 @@ class TeamDetailView(LoginRequiredMixin, generic.DetailView):
     context_object_name = 'team'
 
     def get_queryset(self):
-        queryset = Team.objects.select_related('admin').prefetch_related('users', 'moderators', 'ask_messages')
+        queryset = Team.objects.filter(
+            Q(users=self.request.user) |
+            Q(moderators=self.request.user) |
+            Q(admin=self.request.user)
+        ).select_related('admin').prefetch_related('users', 'moderators', 'ask_messages')
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super(TeamDetailView, self).get_context_data(**kwargs)
-        team = self.get_object()
+        team = self.object
         message_chanel_name = team.message_chanel_name
         if self.request.user == team.admin:
             context['channel_form'] = team_form.ChannelForm(
