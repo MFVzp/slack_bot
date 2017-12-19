@@ -2,14 +2,13 @@ from rest_framework import generics
 from django.db.models import Q
 
 from team_app.models import Team
-from .serializers import TeamSerializer
+from .serializers import TeamListSerializer
 
 
 class TeamListView(generics.ListAPIView):
-    serializer_class = TeamSerializer
+    serializer_class = TeamListSerializer
 
     def get_queryset(self):
-        print('get_queryset')
         queryset = Team.objects.filter(
             Q(users=self.request.user) |
             Q(moderators=self.request.user) |
@@ -19,7 +18,7 @@ class TeamListView(generics.ListAPIView):
 
 
 class TeamDetailView(generics.RetrieveAPIView):
-    serializer_class = TeamSerializer
+    serializer_class = TeamListSerializer
 
     def get_queryset(self):
         queryset = Team.objects.filter(

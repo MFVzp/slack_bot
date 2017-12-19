@@ -11,11 +11,14 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'first_name', 'last_name')
 
 
-class TeamSerializer(serializers.ModelSerializer):
     # users = UserSerializer(many=True, read_only=True)
     # moderators = UserSerializer(many=True, read_only=True)
     # admin = UserSerializer(read_only=True)
 
+
+class TeamListSerializer(serializers.ModelSerializer):
+
+
     class Meta:
         model = Team
-        fields = ('team_name', 'team_id', 'message_chanel_name', 'users', 'moderators', 'admin')
+        fields = ('team_name', )
