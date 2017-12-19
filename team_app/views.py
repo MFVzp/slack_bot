@@ -46,14 +46,14 @@ class TeamDetailView(LoginRequiredMixin, generic.DetailView):
                     'message_chanel_name': message_chanel_name
                 }
             )
-        if team.users.all().exists() and self.request.user == team.admin:
-            context['moderators_add_form'] = team_form.AddModeratorForm(
-                team_id=team.id
-            )
-        if team.moderators.all().exists() and self.request.user == team.admin:
-            context['change_admin_form'] = team_form.ChangeAdminForm(
-                team_id=team.id
-            )
+            if team.users.all().exists() and self.request.user == team.admin:
+                context['moderators_add_form'] = team_form.AddModeratorForm(
+                    team_id=team.id
+                )
+            if team.moderators.all().exists() and self.request.user == team.admin:
+                context['change_admin_form'] = team_form.ChangeAdminForm(
+                    team_id=team.id
+                )
         return context
 
 
