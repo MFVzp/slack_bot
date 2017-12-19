@@ -17,13 +17,14 @@ from django.conf.urls import url, include
 from django.conf import settings
 from django.contrib import admin
 from ask_leave_bot.views import index_view
+from django.conf.urls.static import static
 
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', index_view, name='index'),
     url(r'^slack/', include('ask_leave_bot.urls', namespace='slack')),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar

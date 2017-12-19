@@ -193,3 +193,6 @@ keys.py
 
 # debug_toolbar
 dump.rdb
+
+# static_files
+static_files/

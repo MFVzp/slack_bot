@@ -1,4 +1,9 @@
 {% extends 'base.html'%}
+{% load staticfiles %}
+
+{% block extra_stiles %}
+    <link rel="stylesheet" type="text/css" href="{% static 'team_app/team_details.css' %}">
+{% endblock %}
 {% block content %}
     <h1>{{ team.team_name }}</h1>
     <h6>
@@ -7,7 +12,7 @@
             администратор
             {% if change_admin_form %}
                 (
-                <a data-toggle="collapse" href="#collapseChangeAdmin" aria-expanded="false" aria-controls="collapseChangeAdmin" style="font-size: 12px">
+                <a class="fsize-12" data-toggle="collapse" href="#collapseChangeAdmin" aria-expanded="false" aria-controls="collapseChangeAdmin">
                     назначить нового администратора
                 </a>)
                 <div class="collapse" id="collapseChangeAdmin">
@@ -65,7 +70,7 @@
                         </a>
                     </p>
                 {% else %}
-                    <p style="color: red;">Для функционирования бота необходимо
+                    <p class="color-red">Для функционирования бота необходимо
                         <a data-toggle="collapse" href="#collapseForm" aria-expanded="false" aria-controls="collapseForm">
                             выбрать канал
                         </a>
@@ -113,7 +118,7 @@
                             Модераторы
                         </a>
                         {% if moderators_add_form %}
-                            <a data-toggle="collapse" href="#collapseAddModerators" aria-expanded="false" aria-controls="collapseAddModerators" style="font-size: 12px">
+                            <a class="fsize-12" data-toggle="collapse" href="#collapseAddModerators" aria-expanded="false" aria-controls="collapseAddModerators">
                                 (добавить модераторов)
                             </a>
                         {% endif %}
@@ -133,11 +138,11 @@
                             {% if team.moderators.all %}
                                 {% for moderator in team.moderators.all %}
                                     <div>
-                                        <div style="display: inline-block;">{{ moderator.get_full_name }}</div>
-                                        <form method="post" action="{% url 'slack:teams:remove_moderator' pk=team.id %}" style="display: inline-block;float: right;">
+                                        <div class="d-inline-block">{{ moderator.get_full_name }}</div>
+                                        <form method="post" action="{% url 'slack:teams:remove_moderator' pk=team.id %}" class="d-inline-block pull-right">
                                             {% csrf_token %}
                                             <input name="moderator_id" type="text" value="{{ moderator.id }}" hidden>
-                                            <input type="submit" class="btn btn-danger" value="удалить из модераторов" style="font-size: 10px;">
+                                            <input type="submit" class="btn btn-danger fsize-10" value="удалить из модераторов">
                                         </form>
                                     </div>
                                 {% endfor %}
@@ -168,12 +173,12 @@
             {% if team.ask_messages.all %}
                 {% for ask_message in team.ask_messages.all %}
                     {% if user in team.moderators.all or user == team.admin or user == ask_message.author_id %}
-                    <div class="card" style="padding: 10px;">
-                        <div style="font-size: 12px; margin-bottom: 5px;">
-                            <b style="font-size: 20px;">{{ ask_message.author_name }}</b>
-                            <span style="float: right;">{{ ask_message.create_date|date:"d.n.Y H:i" }}</span>
+                    <div class="card padding-10">
+                        <div class="fsize-12">
+                            <b class="fsize-20">{{ ask_message.author_name }}</b>
+                            <span class="pull-right">{{ ask_message.create_date|date:"d.n.Y H:i" }}</span>
                         </div>
-                        <h5 style="margin-left: 20px;">{{ ask_message.text }}</h5>
+                        <h5 class="marg-left-20">{{ ask_message.text }}</h5>
                     </div>
                     {% endif %}
                 {% endfor %}
