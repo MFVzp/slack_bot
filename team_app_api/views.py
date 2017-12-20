@@ -19,25 +19,52 @@ class TeamListView(generics.ListAPIView):
         return queryset
 
 
-class TeamDetailView(generics.RetrieveAPIView):
+class TeamDetailUpdateView(generics.RetrieveUpdateAPIView):
 
     def get_queryset(self):
         queryset = Team.objects.filter(
             Q(users=self.request.user) |
             Q(moderators=self.request.user) |
             Q(admin=self.request.user)
-        ).distinct().select_related('admin').prefetch_related('users', 'moderators', 'ask_messages')
+        ).distinct()
         return queryset
 
     def get_object(self):
-        self.object = super(TeamDetailView, self).get_object()
+        self.object = super(TeamDetailUpdateView, self).get_object()
         return self.object
 
-    def get_serializer_class(self):
+    def get_serializer_class(self, method='GET'):
         if self.request.user == self.object.admin:
             return serializers.TeamAdminDetailSerializer
         else:
             return serializers.TeamDetailSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = serializers.TeamUpdateSerializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
+    def partial_update(self, request, *args, **kwargs):
+        user = self.request.user
+        team = self.get_object()
+        if user == team.admin:
+            super(TeamDetailUpdateView, self).partial_update(request, *args, **kwargs)
+        else:
+            return Response(
+                data={
+                    'error': 'You are not an admin in this team.',
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
 
 
 class TeamUpdateView(generics.UpdateAPIView):

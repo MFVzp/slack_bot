@@ -180,6 +180,7 @@ fabric.properties
 
 # BD
 db.sqlite3
+db_dump.json
 
 # pycharm
 slack_bot/.idea/

@@ -51,6 +51,8 @@ class TeamDetailSerializer(serializers.ModelSerializer):
         fields = ('team_name', 'ask_messages')
 
     def __init__(self, *args, **kwargs):
+        import pudb
+        pudb.set_trace()
         context = kwargs.get('context')
         super(TeamDetailSerializer, self).__init__(*args, **kwargs)
         if context:
@@ -64,7 +66,6 @@ class TeamDetailSerializer(serializers.ModelSerializer):
                 queryset,
                 many=True
             )
-            print(self.fields['ask_messages'].data)
 
 
 class TeamAdminDetailSerializer(serializers.ModelSerializer):
@@ -76,3 +77,10 @@ class TeamAdminDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
         fields = ('team_name', 'message_chanel_name', 'users', 'moderators', 'admin', 'ask_messages')
+
+
+class TeamUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Team
+        fields = ('message_chanel_name', )
