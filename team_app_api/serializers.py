@@ -11,14 +11,19 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'first_name', 'last_name')
 
 
-    # users = UserSerializer(many=True, read_only=True)
-    # moderators = UserSerializer(many=True, read_only=True)
-    # admin = UserSerializer(read_only=True)
-
-
 class TeamListSerializer(serializers.ModelSerializer):
-
+    url = serializers.HyperlinkedIdentityField(view_name='slack:teams_api:team_details')
 
     class Meta:
         model = Team
-        fields = ('team_name', )
+        fields = ('team_name', 'url')
+
+
+class TeamDetailSerializer(serializers.ModelSerializer):
+    users = UserSerializer(many=True, read_only=True)
+    moderators = UserSerializer(many=True, read_only=True)
+    admin = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Team
+        fields = ('team_name', 'message_chanel_name', 'users', 'moderators', 'admin')
