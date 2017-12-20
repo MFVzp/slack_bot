@@ -5,14 +5,6 @@ from django.contrib.auth.models import User
 from team_app.models import Team, AskMessage
 
 
-class TeamListSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='slack:teams_api:team_details')
-
-    class Meta:
-        model = Team
-        fields = ('team_name', 'url')
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -40,6 +32,14 @@ class AskMessageDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = AskMessage
         fields = ('author_name', 'text', 'create_date', 'is_answered')
+
+
+class TeamListSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='slack:teams_api:team_details')
+
+    class Meta:
+        model = Team
+        fields = ('team_name', 'url')
 
 
 class TeamDetailSerializer(serializers.ModelSerializer):

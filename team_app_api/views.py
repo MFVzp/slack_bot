@@ -37,7 +37,6 @@ class TeamDetailView(generics.RetrieveAPIView):
         if self.request.user == self.object.admin:
             return serializers.TeamAdminDetailSerializer
         else:
-            print('else')
             return serializers.TeamDetailSerializer
 
 
