@@ -22,7 +22,7 @@ class TeamListView(LoginRequiredMixin, generic.ListView):
             Q(users=self.request.user) |
             Q(moderators=self.request.user) |
             Q(admin=self.request.user)
-        )
+        ).distinct()
         return queryset
 
 
@@ -37,7 +37,7 @@ class TeamDetailView(LoginRequiredMixin, generic.DetailView):
             Q(users=self.request.user) |
             Q(moderators=self.request.user) |
             Q(admin=self.request.user)
-        ).select_related('admin').prefetch_related('users', 'moderators', 'ask_messages')
+        ).distinct().select_related('admin').prefetch_related('users', 'moderators', 'ask_messages')
         return queryset
 
     def get_context_data(self, **kwargs):
