@@ -40,6 +40,30 @@ class TeamDetailView(generics.RetrieveAPIView):
             return serializers.TeamDetailSerializer
 
 
+class TeamUpdateView(generics.UpdateAPIView):
+
+    def get_queryset(self):
+        queryset = Team.objects.filter(
+            Q(users=self.request.user) |
+            Q(moderators=self.request.user) |
+            Q(admin=self.request.user)
+        ).distinct()
+        return queryset
+
+    def partial_update(self, request, *args, **kwargs):
+        user = self.request.user
+        team = self.get_object()
+        if user == team.admin:
+            super(TeamUpdateView, self).partial_update(request, *args, **kwargs)
+        else:
+            return Response(
+                data={
+                    'error': 'You are not an admin in this team.',
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+
 class AskMessageListView(generics.ListAPIView):
     serializer_class = serializers.AskMessageListSerializer
 
@@ -70,7 +94,7 @@ class AskMessageDetailView(generics.RetrieveAPIView):
         else:
             return Response(
                 data={
-                    'error': 'It`s not yours message and you aren`t admin or moderator in this team.',
+                    'error': 'It is not yours message and you are not an admin or moderator in this team.',
                 },
                 status=status.HTTP_403_FORBIDDEN
             )
