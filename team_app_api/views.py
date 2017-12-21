@@ -1,10 +1,20 @@
+import datetime
+
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import views
 from django.db.models import Q
+from django.conf import settings
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+import requests
+from slackclient import SlackClient
+
 
 from team_app.models import Team, AskMessage
 from team_app_api import serializers
+from auth_token_app.models import ManyDevicesExpiratoryToken, Device
 
 
 class TeamListView(generics.ListAPIView):
@@ -124,4 +134,88 @@ class AskMessageDetailView(generics.RetrieveAPIView):
                     'error': 'It is not yours message and you are not an admin or moderator in this team.',
                 },
                 status=status.HTTP_403_FORBIDDEN
+            )
+
+
+class LoginOrAddBotView(views.APIView):
+
+    def get(self, request):
+        scope = 'bot'
+        return Response({
+            'redirect_url': 'https://slack.com/oauth/authorize?scope={0}&client_id={1}'.format(
+                scope,
+                settings.SLACK_CLIENT_ID
+            ),
+        })
+
+
+class RegisterView(views.APIView):
+
+    def get(self, request):
+        code = request.GET['code']
+
+        params = {
+            'code': code,
+            'client_id': settings.SLACK_CLIENT_ID,
+            'client_secret': settings.SLACK_CLIENT_SECRET,
+        }
+        url = 'https://slack.com/api/oauth.access'
+        data = requests.get(url, params).json()
+
+        if data.get('access_token') and not data.get('error'):
+            response_context = dict()
+            team, team_created = Team.objects.get_or_create(
+                team_name=data['team_name'],
+                team_id=data['team_id']
+            )
+            password = data['user_id'] * 2
+            if not request.user.is_authenticated:
+                slack_client = SlackClient(data['access_token'])
+                profile = slack_client.api_call('users.profile.get')['profile']
+                user = authenticate(
+                    request=request,
+                    username=data['user_id'],
+                    password=password
+                )
+                if user is None:
+                    user = User.objects.create_user(
+                        username=data['user_id'],
+                        first_name=profile['first_name'],
+                        last_name=profile['last_name'],
+                        email=profile['email']
+                    )
+                    user.set_password(password)
+                    user.save()
+                    if not team_created:
+                        team.users.add(user)
+                if user:
+                    token, token_created = ManyDevicesExpiratoryToken.objects.get_or_create(
+                        user=user
+                    )
+                    if not token_created:
+                        if datetime.datetime.now() > token.expiration_date:
+                            token.delete()
+                            token = ManyDevicesExpiratoryToken.objects.create(
+                                user=user
+                            )
+                    Device.objects.get_or_create(
+                        user_agent=self.request.META.get('HTTP_USER_AGENT'),
+                        ip_address=self.request.META.get('REMOTE_ADDR'),
+                        token=token
+                    )
+                    response_context['access_token'] = 'Token {}'.format(user.auth_token.key)
+
+            else:
+                user = request.user
+            if team_created:
+                team.admin = user
+                team.save()
+                response_context['team_info'] = 'Team {} successfully added.'.format(team.team_name)
+            return Response(data=response_context)
+        else:
+            return Response(
+                data={
+                    'authentication error': 'Your authentication failed.',
+                },
+                status=status.HTTP_401_UNAUTHORIZED
             )

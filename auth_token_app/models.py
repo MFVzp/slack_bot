@@ -10,8 +10,13 @@ def get_now_plus_1_day():
 
 
 class ManyDevicesExpiratoryToken(Token):
-    used_devices = models.PositiveSmallIntegerField(default=0)
     expiration_date = models.DateTimeField(default=get_now_plus_1_day)
+
+
+class Device(models.Model):
+    user_agent = models.CharField(max_length=128, null=True)
+    ip_address = models.GenericIPAddressField(null=True)
+    token = models.ForeignKey(ManyDevicesExpiratoryToken, on_delete=models.CASCADE, related_name='devices')
 
 
 class MyTokenAuthentication(TokenAuthentication):
