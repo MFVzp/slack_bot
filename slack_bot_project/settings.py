@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'ask_leave_bot',
     'team_app',
     'team_app_api',
+    'auth_token_app'
 ]
 
 MIDDLEWARE = [
@@ -186,6 +187,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'auth_token_app.models.MyTokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
