@@ -8,7 +8,7 @@ urlpatterns = [
     url(r'teams/(?P<pk>[0-9]+)/$', TeamDetailUpdateView.as_view(), name='team_details'),
     url(r'teams/$', TeamListView.as_view(), name='team_list'),
     url(r'login_or_add_bot/$', LoginOrAddBotView.as_view(), name='login_or_add_bot'),
-    url(r'register/$', LoginOrAddBotView.as_view(), name='login_or_add_bot'),
+    url(r'register/$', RegisterView.as_view(), name='login_or_add_bot'),
 ]
 
 
