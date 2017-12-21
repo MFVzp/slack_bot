@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 import requests
 from slackclient import SlackClient
 
@@ -215,7 +216,32 @@ class RegisterView(views.APIView):
         else:
             return Response(
                 data={
-                    'authentication error': 'Your authentication failed.',
+                    'error': 'Your authentication failed.',
                 },
                 status=status.HTTP_401_UNAUTHORIZED
             )
+
+
+class LogoutView(views.APIView):
+
+    def get(self, request):
+        token = self.request.user.auth_token
+        try:
+            device = Device.objects.get(
+                user_agent=self.request.META.get('HTTP_USER_AGENT'),
+                ip_address=self.request.META.get('REMOTE_ADDR'),
+                token=token
+            )
+        except ObjectDoesNotExist:
+            return Response(
+                data={
+                    'error': 'You are not authorize from this device(User agent: {}; IP address: {}).'.format(
+                        self.request.META.get('HTTP_USER_AGENT'),
+                        self.request.META.get('REMOTE_ADDR')
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        device.delete()
+        if not token.devices.all().exists():
+            token.delete()
