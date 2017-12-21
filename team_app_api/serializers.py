@@ -45,27 +45,24 @@ class TeamListSerializer(serializers.ModelSerializer):
 
 
 class TeamDetailSerializer(serializers.ModelSerializer):
+    ask_messages = serializers.SerializerMethodField('get_team_ask_messages')
 
     class Meta:
         model = Team
         fields = ('team_name', 'ask_messages')
 
-    def __init__(self, *args, **kwargs):
-        import pudb
-        pudb.set_trace()
-        context = kwargs.get('context')
-        super(TeamDetailSerializer, self).__init__(*args, **kwargs)
-        if context:
-            user = context['request'].user
-            team = context['view'].object
-            if user in team.moderators.all():
+    def get_team_ask_messages(self, team):
+        user = self.context['request'].user
+        if user in team.moderators.all():
                 queryset = team.ask_messages.all()
-            else:
-                queryset = team.ask_messages.filter(author_id=user.username)
-            self.fields['ask_messages'] = AskMessageSerializer(
-                queryset,
-                many=True
-            )
+        else:
+            queryset = team.ask_messages.filter(author_id=user.username)
+        serializer = AskMessageSerializer(
+            queryset,
+            many=True,
+            context={'request': self.context['request']},
+        )
+        return serializer.data
 
 
 class TeamAdminDetailSerializer(serializers.ModelSerializer):
