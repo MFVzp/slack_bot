@@ -1,5 +1,3 @@
-import datetime
-
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 import requests
 from slackclient import SlackClient
 
@@ -194,7 +193,7 @@ class RegisterView(views.APIView):
                         user=user
                     )
                     if not token_created:
-                        if datetime.datetime.now() > token.expiration_date:
+                        if timezone.now() > token.expiration_date:
                             token.delete()
                             token = ManyDevicesExpiratoryToken.objects.create(
                                 user=user

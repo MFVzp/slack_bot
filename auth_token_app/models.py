@@ -1,12 +1,13 @@
 import datetime
 
 from django.db import models
+from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
 
 
 def get_now_plus_1_day():
-    return datetime.datetime.now() + datetime.timedelta(days=1)
+    return timezone.now() + datetime.timedelta(days=1)
 
 
 class ManyDevicesExpiratoryToken(Token):
