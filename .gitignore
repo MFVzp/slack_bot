@@ -197,3 +197,6 @@ dump.rdb
 
 # static_files
 static_files/
+
+# Celery
+celerybeat.pid

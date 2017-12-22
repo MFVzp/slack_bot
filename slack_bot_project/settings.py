@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import dj_database_url
+import datetime
+
+from .celery import app
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -192,4 +195,13 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ),
+}
+
+# Celery configurations
+
+app.conf.beat_schedule = {
+    'clear-expired-tokens-every-hour': {
+        'task': 'auth_token_app.tasks.clean_expired_tokens',
+        'schedule': datetime.timedelta(hours=1),
+    },
 }
